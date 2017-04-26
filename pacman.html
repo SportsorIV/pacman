@@ -22,7 +22,12 @@ var timerEvents = 0 ;
     var game = new Phaser.Game(448, 496, Phaser.AUTO);
 
     var Pacman = function (game) {
-    
+        counters = 0;
+        text= game.add.text(game.world.centerX, 80 + (40 * i), 'Counter ' + i + ' = 0', { font: "32px Arial", fill: "#ffffff", align: "center" });
+        
+        timerEvents = game.time.events.loop(game.rnd.integerInRange(250, 1000), updateCounter);
+		text.anchor.setTo(0.5, 0);
+        text.setText('Counter ' + ' = ' + counters);
         this.map = null;
         this.layer = null;
         this.pacman = null;
