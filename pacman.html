@@ -15,14 +15,17 @@
 <body>
 
     <script type="text/javascript">
+var score = 0;
+var scorelife = 0;
+var text = "Time";
+var timerEvents = 0 ;
+
 
 
     var game = new Phaser.Game(448, 496, Phaser.AUTO);
 
     var Pacman = function (game) {
-	
-		
-       
+    
         this.map = null;
         this.layer = null;
         this.pacman = null;
@@ -63,37 +66,48 @@
             //  We need this because the assets are on github pages
             //  Remove the next 2 lines if running locally
             this.load.baseURL = 'https://sportsoriv.github.io/pacman/';
-            this.load.crossOrigin = 'anonymous';
+            this.load.crossOrigin = 'anonymous';           
 
             this.load.image('dot', 'assets/smh.png');
+			this.load.image('life', 'assets/heart.png');
          //   this.load.image('power', 'assets/smh.png');
             this.load.image('tiles', 'assets/pacman-tiles.png');
             this.load.spritesheet('pacman', 'assets/ryu2.png', 32,32);
             this.load.tilemap('map', 'assets/pacman-map1.json', null, Phaser.Tilemap.TILED_JSON);
-
+            game.load.audio('sfx', 'assets/audio/haduken.mp3');
             //  Needless to say, graphics (C)opyright Namco
 
         },
 
         create: function () {
+            
+			
+            
+            
 
-            this.map = this.add.tilemap('map');
+            
+			
+			fx = game.add.audio('sfx');
+            fx.allowMultiple = true;
+			fx.addMarker('haduken', 1, 1.0);
+			this.map = this.add.tilemap('map');
             this.map.addTilesetImage('pacman-tiles', 'tiles');
 
             this.layer = this.map.createLayer('Pacman');
 
             this.dots = this.add.physicsGroup();
-            this.powers = this.add.physicsGroup();
-            
-            this.map.createFromTiles(7, this.safetile, 'dot', this.layer, this.dots);
-         //   this.map.createFromTiles(9, this.safetile, 'power', this.layer, this.powers);
+            this.lifes = this.add.physicsGroup();
+             
+			 this.map.createFromTiles(7, this.safetile, 'dot', this.layer, this.dots);
+             this.map.createFromTiles(19, this.safetile, 'life', this.layer, this.lifes);
         
             //  The dots will need to be offset by 6px to put them back in the middle of the grid
             this.dots.setAll('x', 6, false, false, 1);
             this.dots.setAll('y', 6,false, false, 1);
-        //    this.powers.setAll('x', 8, false, false, 1);
-          //  this.powers.setAll('y', 8, false, false, 1);
             
+			this.lifes.setAll('x', 22, false, false, 1);
+			this.lifes.setAll('y', 22, false, false, 1);
+			
             //  Pacman should collide with everything except the safe tile
             this.map.setCollisionByExclusion([this.safetile], true, this.layer);
 
@@ -109,7 +123,8 @@
 
             this.pacman.play('munch');
             this.move(Phaser.LEFT);
-
+           
+			
         },
 
         checkKeys: function () {
@@ -227,20 +242,33 @@
         },
 
         eatDot: function (pacman, dot) {
-
+            fx.play('haduken');
             dot.kill();
-
+            score++;
             if (this.dots.total === 0)
             {
                 this.dots.callAll('revive');
             }
 
         },
+		 eatLife: function (pacman, life) {
+            
+            life.kill();
+            scorelife++;
+			
+          },
+		  
+	    
+           
+            
+
+        
 
         update: function () {
           
             this.physics.arcade.collide(this.pacman, this.layer);
             this.physics.arcade.overlap(this.pacman, this.dots, this.eatDot, null, this);
+			this.physics.arcade.overlap(this.pacman, this.lifes, this.eatLife, null, this);
 
             this.marker.x = this.math.snapToFloor(Math.floor(this.pacman.x), this.gridsize) / this.gridsize;
             this.marker.y = this.math.snapToFloor(Math.floor(this.pacman.y), this.gridsize) / this.gridsize;
@@ -257,13 +285,16 @@
             {
                 this.turn();
             }
-
-        }
+          game.debug.text('Lifes: ' + scorelife , 10, 10);
+          game.debug.text('Score: ' + score , 350, 10);
+		  game.debug.text('Elapsed seconds: ' + this.game.time.totalElapsedSeconds(), 125, 495);
+		
+		}
 
     };
-
+    
     game.state.add('Game', Pacman, true);
-
+   
     </script>
 
 </body>
